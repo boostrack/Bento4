@@ -407,6 +407,18 @@ AP4_Track::GetSampleIndexForTimeStampMs(AP4_UI32 ts_ms, AP4_Ordinal& index)
 }
 
 /*----------------------------------------------------------------------
+ |   AP4_Track::GetSampleIndexForTimeStamp
+ +---------------------------------------------------------------------*/
+AP4_Result
+AP4_Track::GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_UI32 timescale, AP4_Ordinal& index)
+{
+    // convert the ts in the timescale of the track's media
+    ts = AP4_ConvertTime(ts, timescale, GetMediaTimeScale());
+
+    return m_SampleTable->GetSampleIndexForTimeStamp(ts, index);
+}
+
+/*----------------------------------------------------------------------
 |   AP4_Track::GetNearestSyncSampleIndex
 +---------------------------------------------------------------------*/
 AP4_Ordinal  

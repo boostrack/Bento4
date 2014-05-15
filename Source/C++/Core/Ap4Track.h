@@ -112,6 +112,7 @@ class AP4_Track {
                             AP4_DataBuffer& data);
     AP4_Result   GetSampleIndexForTimeStampMs(AP4_UI32     ts_ms, 
                                               AP4_Ordinal& index);
+    AP4_Result   GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_UI32 timescale, AP4_Ordinal& index);
     AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before=true);
     AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     AP4_Cardinal           GetSampleDescriptionCount();

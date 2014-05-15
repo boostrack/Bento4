@@ -72,6 +72,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		69F4A43E1924034B007A5E7C /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		69F4A446192479B8007A5E7C /* mp4extractclip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 69F4A445192479B8007A5E7C /* mp4extractclip.cpp */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
 		CA00CB8713D9F1EC00C1A140 /* Mp4Compact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00CB8613D9F1EC00C1A140 /* Mp4Compact.cpp */; };
 		CA04DFDE1040921500AD5863 /* Ap4KeyWrap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA04DFDC1040921500AD5863 /* Ap4KeyWrap.cpp */; };
@@ -388,6 +390,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		69F4A43A1924034B007A5E7C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
 		CA00667710153959004C0D5F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -851,6 +860,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		69F4A4421924034B007A5E7C /* mp4extractclip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4extractclip; sourceTree = BUILT_PRODUCTS_DIR; };
+		69F4A445192479B8007A5E7C /* mp4extractclip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mp4extractclip.cpp; sourceTree = "<group>"; };
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA00667C1015399A004C0D5F /* Mp42Ts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mp42Ts.cpp; sourceTree = "<group>"; };
 		CA00CB7C13D9F13B00C1A140 /* mp4compact */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4compact; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1171,6 +1182,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		69F4A43D1924034B007A5E7C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				69F4A43E1924034B007A5E7C /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA00667110153951004C0D5F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1507,8 +1526,17 @@
 				CAC8F17016BE444D00C49741 /* mp4audioclip */,
 				CAF9811A18DBED9B0001B999 /* hevcinfo */,
 				CAF9812F18DBF34B0001B999 /* mp42hevc */,
+				69F4A4421924034B007A5E7C /* mp4extractclip */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		69F4A444192479B8007A5E7C /* Mp4ExtractClip */ = {
+			isa = PBXGroup;
+			children = (
+				69F4A445192479B8007A5E7C /* mp4extractclip.cpp */,
+			);
+			path = Mp4ExtractClip;
 			sourceTree = "<group>";
 		};
 		C6A0FF2B0290797F04C91782 /* Documentation */ = {
@@ -1592,6 +1620,7 @@
 				CA646A8F0CE97B2D009699D7 /* Mp4Edit */,
 				CA646A910CE97B2D009699D7 /* Mp4Encrypt */,
 				CA646A930CE97B2D009699D7 /* Mp4Extract */,
+				69F4A444192479B8007A5E7C /* Mp4ExtractClip */,
 				CA6103E2128599C20039C7E6 /* Mp4Fragment */,
 				CA646A950CE97B2D009699D7 /* Mp4Info */,
 				CA646A970CE97B2D009699D7 /* Mp4RtpHintInfo */,
@@ -2283,6 +2312,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		69F4A4381924034B007A5E7C /* Mp4ExtractClip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 69F4A43F1924034B007A5E7C /* Build configuration list for PBXNativeTarget "Mp4ExtractClip" */;
+			buildPhases = (
+				69F4A43B1924034B007A5E7C /* Sources */,
+				69F4A43D1924034B007A5E7C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				69F4A4391924034B007A5E7C /* PBXTargetDependency */,
+			);
+			name = Mp4ExtractClip;
+			productName = Mp4Fragment;
+			productReference = 69F4A4421924034B007A5E7C /* mp4extractclip */;
+			productType = "com.apple.product-type.tool";
+		};
 		CA00667210153951004C0D5F /* Mp42Ts */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CA00667A10153994004C0D5F /* Build configuration list for PBXNativeTarget "Mp42Ts" */;
@@ -2923,11 +2969,20 @@
 				CAE724050FC33645008F2905 /* LinearReaderTest */,
 				CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */,
 				CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */,
+				69F4A4381924034B007A5E7C /* Mp4ExtractClip */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		69F4A43B1924034B007A5E7C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				69F4A446192479B8007A5E7C /* mp4extractclip.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CA00667010153951004C0D5F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3322,6 +3377,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		69F4A4391924034B007A5E7C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = 69F4A43A1924034B007A5E7C /* PBXContainerItemProxy */;
+		};
 		CA00667810153959004C0D5F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
@@ -3704,6 +3764,32 @@
 				ONLY_ACTIVE_ARCH = NO;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
 				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
+			};
+			name = Release;
+		};
+		69F4A4401924034B007A5E7C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = mp4extractclip;
+			};
+			name = Debug;
+		};
+		69F4A4411924034B007A5E7C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = mp4extractclip;
+				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -4457,6 +4543,15 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		69F4A43F1924034B007A5E7C /* Build configuration list for PBXNativeTarget "Mp4ExtractClip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				69F4A4401924034B007A5E7C /* Debug */,
+				69F4A4411924034B007A5E7C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
