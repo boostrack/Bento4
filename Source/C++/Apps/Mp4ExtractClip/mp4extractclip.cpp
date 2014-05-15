@@ -133,7 +133,7 @@ AP4_Result SelectExtractionRange(AP4_Movie *srcMovie, AP4_UI64 &startTime, AP4_U
         }
 
         if (endTime < startTime) {
-            endSampleIndex = startSampleIndex + 1;
+            endSampleIndex = startSampleIndex;
             endTime = startTime;
         } else {
             result = track->GetSampleIndexForTimeStamp(endTime, timescale, endSampleIndex);
@@ -144,7 +144,7 @@ AP4_Result SelectExtractionRange(AP4_Movie *srcMovie, AP4_UI64 &startTime, AP4_U
 
         AP4_Sample lastSample;
         track->GetSample(endSampleIndex, lastSample);
-        dts = lastSample.GetDts();
+        dts = lastSample.GetDts() + last.GetDuration();
         endTime = dts;
         if (timescale != track->GetMediaTimeScale()) {
             startTime = AP4_ConvertTime(startTime, timescale, track->GetMediaTimeScale());
