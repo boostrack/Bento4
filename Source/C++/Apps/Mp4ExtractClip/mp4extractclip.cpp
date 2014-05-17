@@ -33,6 +33,7 @@ typedef struct _Options {
     bool no_meta : 1;
     bool no_uuid : 1;
     bool thumbnail_mode : 1;
+    bool write_to_stdout : 1;
 } Options;
 
 /*----------------------------------------------------------------------
@@ -324,9 +325,11 @@ main(int argc, char** argv)
         return 1;
     }
 
-    if (output_filename == NULL) {
-        fprintf(stderr, "ERROR: no output specified\n");
-        return 1;
+    if (output_filename == NULL || !strcmp(output_filename, "-")) {
+//        fprintf(stderr, "ERROR: no output specified\n");
+//        return 1;
+        opt.write_to_stdout = 1;
+        output_filename = "-stdout";
     }
     AP4_ByteStream* output_stream = NULL;
     result = AP4_FileByteStream::Create(output_filename,
@@ -359,6 +362,7 @@ main(int argc, char** argv)
         SelectExtractionRange(input_file.GetMovie(), start_time, end_time, timescale);
         newMovie = NewTrimmedMovie(input_file.GetMovie(), *input_stream, start_time, end_time, timescale, opt);
     } else {
+        SelectExtractionRange(input_file.GetMovie(), start_time, end_time, timescale);
         newMovie = NewThumbnailMovie(input_file.GetMovie(), *input_stream, start_time, timescale);
     }
 
@@ -386,7 +390,11 @@ main(int argc, char** argv)
 
         delete file;
 
-        fprintf(stdout, "{ \"start\": [%lld, %u], \"duration\": [%lld, %u] }\n",
+        FILE *jsonOutput = stdout;
+        if (opt.write_to_stdout) {
+            jsonOutput = stderr;
+        }
+        fprintf(jsonOutput, "{ \"start\": [%lld, %u], \"duration\": [%lld, %u] }\n",
                 start_time, timescale, end_time - start_time, timescale);
     }
 
