@@ -281,7 +281,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --end option\n");
                 return 1;
             }
-            end_time = strtoull(arg, NULL, 10);
+            duration_time = strtoull(arg, NULL, 10);
         } else if (!strcmp(arg, "--timescale")) {
             arg = *argv++;
             if (arg == NULL) {
