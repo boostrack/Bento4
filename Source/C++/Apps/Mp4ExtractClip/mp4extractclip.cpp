@@ -151,7 +151,7 @@ AP4_Result SelectExtractionRange(AP4_Movie *srcMovie, AP4_UI64 &startTime, AP4_U
             startTime = AP4_ConvertTime(startTime, timescale, track->GetMediaTimeScale());
             timescale = track->GetMediaTimeScale();
         }
-        
+
         result = AP4_SUCCESS;
 
     }
@@ -281,7 +281,7 @@ main(int argc, char** argv)
                 fprintf(stderr, "ERROR: missing argument after --end option\n");
                 return 1;
             }
-            end_time = strtoull(arg, NULL, 10);
+            duration_time = strtoull(arg, NULL, 10);
         } else if (!strcmp(arg, "--timescale")) {
             arg = *argv++;
             if (arg == NULL) {
@@ -326,8 +326,8 @@ main(int argc, char** argv)
     }
 
     if (output_filename == NULL || !strcmp(output_filename, "-")) {
-//        fprintf(stderr, "ERROR: no output specified\n");
-//        return 1;
+        //        fprintf(stderr, "ERROR: no output specified\n");
+        //        return 1;
         opt.write_to_stdout = 1;
         output_filename = "-stdout";
     }
@@ -385,22 +385,23 @@ main(int argc, char** argv)
             }
         }
 
-        // write the file to the output
-        AP4_FileWriter::Write(*file, *output_stream);
 
-        delete file;
-
-        FILE *jsonOutput = stdout;
-        if (opt.write_to_stdout) {
-            jsonOutput = stderr;
-        }
+        // write the metadata
+        FILE *jsonOutput = (opt.write_to_stdout) ? stderr : stdout;
         fprintf(jsonOutput, "{ \"start\": [%lld, %u], \"duration\": [%lld, %u] }\n",
                 start_time, timescale, end_time - start_time, timescale);
+        fflush(jsonOutput);
+        
+        // write the file to the output
+        AP4_FileWriter::Write(*file, *output_stream);
+        
+        delete file;
+        
     }
-
+    
     // cleanup and exit
     if (input_stream)  input_stream->Release();
     if (output_stream) output_stream->Release();
-
+    
     return 0;
 }
