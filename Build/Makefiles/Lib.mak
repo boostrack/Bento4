@@ -113,8 +113,10 @@ CORE_SOURCES = 								\
     Ap4PdinAtom.cpp                         \
     Ap4AinfAtom.cpp                         \
     Ap4BlocAtom.cpp                         \
-    Ap4PsshAtom.cpp			    \
-    Ap4Dec3Atom.cpp
+    Ap4PsshAtom.cpp			                \
+    Ap4Dec3Atom.cpp                         \
+	Ap4HvccAtom.cpp                         \
+
     
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)

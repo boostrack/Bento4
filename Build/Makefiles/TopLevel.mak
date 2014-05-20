@@ -132,6 +132,10 @@ mp4compact: lib
 	$(TITLE)
 	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4Compact.mak
 	
+mp4extractclip: lib
+	$(TITLE)
+	@$(INVOKE_SUBMAKE) -f $(BUILD_ROOT)/Makefiles/Mp4ExtractClip.mak
+	
 
 ##################################################################
 # includes
