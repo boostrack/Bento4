@@ -72,6 +72,7 @@ PrintUsageAndExit()
             "  --show-layout:      show sample layout\n"
             "  --show-samples:     show sample details\n"
             "  --show-sample-data: show sample data\n"
+            "  --skip-tracks:      skip display of track info\n"
             "  --fast:             skip some details that are slow to compute\n");
     exit(1);
 }
@@ -1320,6 +1321,7 @@ main(int argc, char** argv)
     Options.format = TEXT_FORMAT;
     const char* filename         = NULL;
     bool        verbose          = false;
+    bool        show_tracks      = true;
     bool        show_samples     = false;
     bool        show_sample_data = false;
     bool        show_layout      = false;
@@ -1346,6 +1348,8 @@ main(int argc, char** argv)
 
         } else if (!strcmp(arg, "--fast")) {
             fast = true;
+        } else if (!strcmp(arg, "--skip-tracks")) {
+            show_tracks = false;
         } else if (!strcmp(arg, "--show-samples")) {
             show_samples = true;
         } else if (!strcmp(arg, "--show-sample-data")) {
@@ -1387,26 +1391,31 @@ main(int argc, char** argv)
     if (movie) {
         ShowMovieInfo(*movie);
 
-        AP4_List<AP4_Track>& tracks = movie->GetTracks();
-        if (Options.format == TEXT_FORMAT) {
-            printf("Found %d Tracks\n", tracks.ItemCount());
+        if (show_tracks) {
+            AP4_List<AP4_Track>& tracks = movie->GetTracks();
+            if (Options.format == TEXT_FORMAT) {
+                printf("Found %d Tracks\n", tracks.ItemCount());
+            }
+
+            if (ftyp && ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
+                ShowMarlinTracks(*file, *input, tracks, show_samples, show_sample_data, verbose, fast);
+            } else {
+                ShowTracks(*movie, tracks, *input, show_samples, show_sample_data, verbose, fast);
+            }
+
+            if (show_layout) {
+                ShowSampleLayout(tracks, verbose);
+            }
+
+            if (movie->HasFragments() && show_samples) {
+                if (Options.format == TEXT_FORMAT) {
+                    ShowFragments_Text(*movie, verbose, show_sample_data, input);
+                }
+            }
+        } else {
+            printf("\"tracks\":false\n");
         }
 
-        if (ftyp && ftyp->GetMajorBrand() == AP4_MARLIN_BRAND_MGSV) {
-            ShowMarlinTracks(*file, *input, tracks, show_samples, show_sample_data, verbose, fast);
-        } else {
-            ShowTracks(*movie, tracks, *input, show_samples, show_sample_data, verbose, fast);
-        }
-        
-        if (show_layout) {
-            ShowSampleLayout(tracks, verbose);
-        }
-        
-        if (movie->HasFragments() && show_samples) {
-            if (Options.format == TEXT_FORMAT) {
-                ShowFragments_Text(*movie, verbose, show_sample_data, input);
-            }
-        }
     } else {
         // check if this is a DCF file
         if (ftyp && ftyp->GetMajorBrand() == AP4_OMA_DCF_BRAND_ODCF) {
