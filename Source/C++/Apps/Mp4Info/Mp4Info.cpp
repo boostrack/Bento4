@@ -1065,7 +1065,7 @@ ShowMovieInfo(AP4_Movie& movie)
 |   ShowFileInfo
 +---------------------------------------------------------------------*/
 static void
-ShowFileInfo(AP4_File& file)
+ShowFileInfo(AP4_File& file, bool onlySection)
 {
     AP4_FtypAtom* file_type = file.GetFileType();
     if (file_type == NULL) return;
@@ -1110,7 +1110,11 @@ ShowFileInfo(AP4_File& file)
             break;
             
         case JSON_FORMAT:
-            printf("]\n},\n");
+			if (onlySection) {
+				printf("]\n}\n");
+			} else {
+				printf("]\n},\n");
+			}
             break;
     }
 }
@@ -1384,10 +1388,13 @@ main(int argc, char** argv)
     
     AP4_File* file = new AP4_File(*input, AP4_DefaultAtomFactory::Instance, true);
     input->Release();
-    ShowFileInfo(*file);
+    
 
     AP4_Movie* movie = file->GetMovie();
     AP4_FtypAtom* ftyp = file->GetFileType();
+	
+	ShowFileInfo(*file, NULL == movie);
+	
     if (movie) {
         ShowMovieInfo(*movie);
 
