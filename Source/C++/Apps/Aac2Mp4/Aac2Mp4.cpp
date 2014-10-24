@@ -92,7 +92,40 @@ main(int argc, char** argv)
         AP4_Debug("ERROR: cannot open output (%s) %d\n", argv[2], result);
         return 1;
     }
-    
+
+    // start the output movie
+    AP4_Movie* movie = new AP4_Movie();
+
+    // create the file
+    AP4_File* file = new AP4_File(movie);
+
+    // set the file type
+    AP4_UI32 compatible_brands[2] = {
+        AP4_FILE_BRAND_ISOM,
+        AP4_FILE_BRAND_MP42
+    };
+    file->SetFileType(AP4_FILE_BRAND_M4A_, 0, compatible_brands, 2);
+
+    AP4_Position mdatPosition;
+
+    // This stuff used to be done in FileWriter, but we want more control
+    {
+        // write the ftyp atom (always first)
+        AP4_FtypAtom* file_type = file->GetFileType();
+        if (file_type) file_type->Write(*output);
+
+        // create a wide atom to allow potential 64-bit mdat size
+        output->WriteUI32((AP4_UI32)8L);
+        output->WriteUI32(AP4_ATOM_TYPE_WIDE);
+
+        output->Tell(mdatPosition);
+
+        // create and write the media data (mdat)
+        // with 0 size (which means the atom extends until EOF)
+        output->WriteUI32((AP4_UI32)0L);
+        output->WriteUI32(AP4_ATOM_TYPE_MDAT);
+    }
+
     // create a sample table
     AP4_SyntheticSampleTable* sample_table = new AP4_SyntheticSampleTable();
 
@@ -140,8 +173,14 @@ main(int argc, char** argv)
 
             AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream(frame.m_Info.m_FrameLength);
             frame.m_Source->ReadBytes(sample_data->UseData(), frame.m_Info.m_FrameLength);
-            sample_table->AddSample(*sample_data, 0, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true);
+            AP4_Position samplePosition;
+            output->Tell(samplePosition);
+            output->Write(sample_data->GetData(), sample_data->GetDataSize());
+            output->WriteUI64(0xDEADBEEF);
+
             sample_data->Release();
+
+            sample_table->AddSample(*output, samplePosition, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true, true);
             sample_count++;
         } else {
             if (eos) break;
@@ -169,15 +208,27 @@ main(int argc, char** argv)
         }
    }
 
-    // create a movie
-    AP4_Movie* movie = new AP4_Movie();
+    // find the mdat size
+    AP4_Position mdatEnd;
+    output->Tell(mdatEnd);
+
+    AP4_LargeSize mdatSize = mdatEnd - mdatPosition;
+
+    if (mdatSize > UINT32_MAX) {
+        // !!! TBD: Handle large sizes by overwriting the 'wide' atom
+    } else {
+        // write the mdat size
+        output->Seek(mdatPosition);
+        output->WriteUI32(mdatSize);
+        output->Seek(mdatEnd);
+    }
 
     // create an audio track
-    AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO, 
-                                     sample_table, 
+    AP4_Track* track = new AP4_Track(AP4_Track::TYPE_AUDIO,
+                                     sample_table,
                                      0,     // track id
                                      sample_rate,       // movie time scale
-                                     sample_count*1024, // track duration              
+                                     sample_count*1024, // track duration
                                      sample_rate,       // media time scale
                                      sample_count*1024, // media duration
                                      "eng", // language
@@ -186,22 +237,15 @@ main(int argc, char** argv)
     // add the track to the movie
     movie->AddTrack(track);
 
-    // create a multimedia file
-    AP4_File* file = new AP4_File(movie);
+    // Offset chunk table (this isn't kept very well it seems)
+//    track->GetTrakAtom()->AdjustChunkOffsets(mdatPosition + 8);
 
-    // set the file type
-    AP4_UI32 compatible_brands[2] = {
-        AP4_FILE_BRAND_ISOM,
-        AP4_FILE_BRAND_MP42
-    };
-    file->SetFileType(AP4_FILE_BRAND_M4A_, 0, compatible_brands, 2);
-
-    // write the file to the output
-    AP4_FileWriter::Write(*file, *output);
+    // write the moov atom
+    movie->GetMoovAtom()->Write(*output);
 
     delete file;
     input->Release();
     output->Release();
-    
+
     return 0;
 }

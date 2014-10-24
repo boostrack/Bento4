@@ -15,6 +15,7 @@
 			dependencies = (
 				CAF9812518DBEDEF0001B999 /* PBXTargetDependency */,
 				CA399CA410A3488B0085284B /* PBXTargetDependency */,
+				690F1F7E19F9E3B700F8FAF9 /* PBXTargetDependency */,
 				CA0D91AE0E258349005667F1 /* PBXTargetDependency */,
 				CAB1AE321782C1DB0038B6A6 /* PBXTargetDependency */,
 				CA3185611087EED3002B38A8 /* PBXTargetDependency */,
@@ -72,6 +73,9 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		690F1F7719F9E38F00F8FAF9 /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
+		690F1F7C19F9E3AB00F8FAF9 /* Avc2Mp4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 690F1F7019F9DEED00F8FAF9 /* Avc2Mp4.cpp */; };
+		690F1F7F19F9E43400F8FAF9 /* Ap4AvcParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA3EDA960D7E14D3007AE943 /* Ap4AvcParser.cpp */; };
 		69F4A43E1924034B007A5E7C /* libBento4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAA7E6C914ACD763008AA54E /* libBento4.a */; };
 		69F4A446192479B8007A5E7C /* mp4extractclip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 69F4A445192479B8007A5E7C /* mp4extractclip.cpp */; };
 		CA00667D1015399A004C0D5F /* Mp42Ts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA00667C1015399A004C0D5F /* Mp42Ts.cpp */; };
@@ -390,6 +394,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		690F1F7319F9E38F00F8FAF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC045055464E500DB518D;
+			remoteInfo = Bento4;
+		};
+		690F1F7D19F9E3B700F8FAF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 690F1F7119F9E38F00F8FAF9;
+			remoteInfo = Avc2Mp4;
+		};
 		69F4A43A1924034B007A5E7C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
@@ -860,6 +878,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		690F1F7019F9DEED00F8FAF9 /* Avc2Mp4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Avc2Mp4.cpp; sourceTree = "<group>"; };
+		690F1F7B19F9E38F00F8FAF9 /* Avc2Mp4 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Avc2Mp4; sourceTree = BUILT_PRODUCTS_DIR; };
 		69F4A4421924034B007A5E7C /* mp4extractclip */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp4extractclip; sourceTree = BUILT_PRODUCTS_DIR; };
 		69F4A445192479B8007A5E7C /* mp4extractclip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mp4extractclip.cpp; sourceTree = "<group>"; };
 		CA00667310153951004C0D5F /* mp42ts */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = mp42ts; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1182,6 +1202,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		690F1F7619F9E38F00F8FAF9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				690F1F7719F9E38F00F8FAF9 /* libBento4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		69F4A43D1924034B007A5E7C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1527,8 +1555,17 @@
 				CAF9811A18DBED9B0001B999 /* hevcinfo */,
 				CAF9812F18DBF34B0001B999 /* mp42hevc */,
 				69F4A4421924034B007A5E7C /* mp4extractclip */,
+				690F1F7B19F9E38F00F8FAF9 /* Avc2Mp4 */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		690F1F6F19F9DEED00F8FAF9 /* Avc2Mp4 */ = {
+			isa = PBXGroup;
+			children = (
+				690F1F7019F9DEED00F8FAF9 /* Avc2Mp4.cpp */,
+			);
+			path = Avc2Mp4;
 			sourceTree = "<group>";
 		};
 		69F4A444192479B8007A5E7C /* Mp4ExtractClip */ = {
@@ -1606,6 +1643,7 @@
 			isa = PBXGroup;
 			children = (
 				CA646A870CE97B2D009699D7 /* Aac2Mp4 */,
+				690F1F6F19F9DEED00F8FAF9 /* Avc2Mp4 */,
 				CA3EDA780D7E0B6B007AE943 /* AvcInfo */,
 				CAF9811418DBED310001B999 /* HevcInfo */,
 				CA646A890CE97B2D009699D7 /* Mp42Aac */,
@@ -2312,6 +2350,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		690F1F7119F9E38F00F8FAF9 /* Avc2Mp4 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 690F1F7819F9E38F00F8FAF9 /* Build configuration list for PBXNativeTarget "Avc2Mp4" */;
+			buildPhases = (
+				690F1F7419F9E38F00F8FAF9 /* Sources */,
+				690F1F7619F9E38F00F8FAF9 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				690F1F7219F9E38F00F8FAF9 /* PBXTargetDependency */,
+			);
+			name = Avc2Mp4;
+			productName = Aac2Mp4;
+			productReference = 690F1F7B19F9E38F00F8FAF9 /* Avc2Mp4 */;
+			productType = "com.apple.product-type.tool";
+		};
 		69F4A4381924034B007A5E7C /* Mp4ExtractClip */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 69F4A43F1924034B007A5E7C /* Build configuration list for PBXNativeTarget "Mp4ExtractClip" */;
@@ -2970,11 +3025,21 @@
 				CAB3CB700FCB35B7007C4260 /* BufferedStreamTest */,
 				CAFC31B80FEB3DDD00EF80A0 /* FragmentParserTest */,
 				69F4A4381924034B007A5E7C /* Mp4ExtractClip */,
+				690F1F7119F9E38F00F8FAF9 /* Avc2Mp4 */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		690F1F7419F9E38F00F8FAF9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				690F1F7C19F9E3AB00F8FAF9 /* Avc2Mp4.cpp in Sources */,
+				690F1F7F19F9E43400F8FAF9 /* Ap4AvcParser.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		69F4A43B1924034B007A5E7C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -3377,6 +3442,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		690F1F7219F9E38F00F8FAF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2AAC045055464E500DB518D /* Bento4 */;
+			targetProxy = 690F1F7319F9E38F00F8FAF9 /* PBXContainerItemProxy */;
+		};
+		690F1F7E19F9E3B700F8FAF9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 690F1F7119F9E38F00F8FAF9 /* Avc2Mp4 */;
+			targetProxy = 690F1F7D19F9E3B700F8FAF9 /* PBXContainerItemProxy */;
+		};
 		69F4A4391924034B007A5E7C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2AAC045055464E500DB518D /* Bento4 */;
@@ -3764,6 +3839,31 @@
 				ONLY_ACTIVE_ARCH = NO;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos macosx";
 				VALID_ARCHS = "i386 ppc x86_64 armv6 armv7";
+			};
+			name = Release;
+		};
+		690F1F7919F9E38F00F8FAF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = Avc2Mp4;
+			};
+			name = Debug;
+		};
+		690F1F7A19F9E38F00F8FAF9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = Avc2Mp4;
+				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
@@ -4543,6 +4643,15 @@
 			buildConfigurations = (
 				1DEB91F008733DB70010E9CD /* Debug */,
 				1DEB91F108733DB70010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		690F1F7819F9E38F00F8FAF9 /* Build configuration list for PBXNativeTarget "Avc2Mp4" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				690F1F7919F9E38F00F8FAF9 /* Debug */,
+				690F1F7A19F9E38F00F8FAF9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
