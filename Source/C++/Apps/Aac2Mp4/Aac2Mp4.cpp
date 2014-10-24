@@ -138,6 +138,7 @@ main(int argc, char** argv)
     AP4_UI32     sample_rate = 0;
     AP4_Cardinal sample_count = 0;
     bool eos = false;
+
     for(;;) {
         // try to get a frame
         AP4_AacFrame frame;
@@ -171,16 +172,20 @@ main(int argc, char** argv)
                 sample_rate = frame.m_Info.m_SamplingFrequency;
             }
 
+            bool newChunk = sample_count % 8 == 0;
+            if (newChunk) {
+                output->WriteUI64(0xDEADBEEF);
+            }
+
             AP4_MemoryByteStream* sample_data = new AP4_MemoryByteStream(frame.m_Info.m_FrameLength);
             frame.m_Source->ReadBytes(sample_data->UseData(), frame.m_Info.m_FrameLength);
             AP4_Position samplePosition;
             output->Tell(samplePosition);
             output->Write(sample_data->GetData(), sample_data->GetDataSize());
-            output->WriteUI64(0xDEADBEEF);
 
             sample_data->Release();
 
-            sample_table->AddSample(*output, samplePosition, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true, true);
+            sample_table->AddSample(*output, samplePosition, frame.m_Info.m_FrameLength, 1024, sample_description_index, 0, 0, true, newChunk);
             sample_count++;
         } else {
             if (eos) break;
