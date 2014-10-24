@@ -69,6 +69,7 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
     virtual AP4_SampleDescription* GetSampleDescription(AP4_Ordinal index);
     virtual AP4_Result GetSampleIndexForTimeStamp(AP4_UI64 ts, AP4_Ordinal& index);
     virtual AP4_Ordinal  GetNearestSyncSampleIndex(AP4_Ordinal index, bool before);
+    virtual AP4_Result   GenerateStblAtom(AP4_ContainerAtom*& stbl);
 
     // methods
     /**
@@ -86,6 +87,7 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
     virtual AP4_Result AddSampleDescription(AP4_SampleDescription* description,
                                             bool                   transfer_ownership=true);
 
+
     /**
      * Add a sample to the sample table, where the sample duration is given
      *
@@ -97,18 +99,19 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
      * value can be 0 if the duration is not known. In that case, the next sample
      * added to the table MUST have a non-zero value for the DTS (decoding timestamp),
      * which will allow the actual duration of this sample to be computed.
-     * @param description_index Index of the sample description that applies to 
+     * @param description_index Index of the sample description that applies to
      * this sample (typically 0).
      * @param dts DTS (decoding timestamp) of the sample. If this value is 0, and there
-     * already are samples in the table, the DTS of the sample will be automatically 
+     * already are samples in the table, the DTS of the sample will be automatically
      * computed based on the DTS and duration of the preceding sample. If this value is
-     * not equal to the DTS+duration of the preceding sample, the duration of the 
+     * not equal to the DTS+duration of the preceding sample, the duration of the
      * preceding sample is automatically adjusted, unless it has a non-zero value, in which
      * case AP4_ERROR_INVALID_PARAMETERS is returned.
      * The DTS of the first sample in the table MUST always be 0.
-     * @param cts_delta Difference between the CTS (composition/display timestamp) and DTS 
+     * @param cts_delta Difference between the CTS (composition/display timestamp) and DTS
      * (decoding timestamp) of the sample (in the timescale of the media)
      * @param sync Boolean flag indicating whether this is a sync sample or not.
+     * @param new_chunk Boolean flag indicating this sample must begin a new chunk
      */
     virtual AP4_Result AddSample(AP4_ByteStream& data_stream,
                                  AP4_Position    offset,
@@ -117,7 +120,11 @@ class AP4_SyntheticSampleTable : public AP4_SampleTable
                                  AP4_Ordinal     description_index,
                                  AP4_UI64        dts,
                                  AP4_UI32        cts_delta,
-                                 bool            sync);
+                                 bool            sync,
+                                 bool            new_chunk = false);
+
+    virtual AP4_Result SetUseSampleOffsetForChunkPositions(bool use_offset);
+    virtual bool GetUseSampleOffsetForChunkPositions() { return m_UseSampleOffsetForChunkPositions; }
 
     /**
      * Get a reference to a sample for the purpose of modifying it
@@ -140,6 +147,8 @@ private:
     AP4_List<SampleDescriptionHolder> m_SampleDescriptions;
     AP4_Cardinal                      m_ChunkSize;
     AP4_Array<AP4_UI32>               m_SamplesInChunk;
+    AP4_Array<AP4_UI64>               m_ChunkOffsets;
+    bool                              m_UseSampleOffsetForChunkPositions;
     struct {
         AP4_Ordinal m_Sample;
         AP4_Ordinal m_Chunk;

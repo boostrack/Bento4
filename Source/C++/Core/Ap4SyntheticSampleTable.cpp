@@ -33,6 +33,10 @@
 #include "Ap4Atom.h"
 #include "Ap4SyntheticSampleTable.h"
 #include "Ap4Sample.h"
+#include "Ap4ContainerAtom.h"
+#include "Ap4StcoAtom.h"
+#include "Ap4Co64Atom.h"
+
 
 /*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable::AP4_SyntheticSampleTable()
@@ -155,14 +159,19 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
                                     AP4_Ordinal     description_index,
                                     AP4_UI64        dts,
                                     AP4_UI32        cts_delta,
-                                    bool            sync)
+                                    bool            sync,
+                                    bool            new_chunk)
 {
     // decide if we need to start a new chunk or increment the last one
     if (m_SamplesInChunk.ItemCount() == 0 ||
         m_SamplesInChunk[m_SamplesInChunk.ItemCount()-1] >= m_ChunkSize ||
         m_Samples.ItemCount() == 0 ||
+        new_chunk ||
         m_Samples[m_Samples.ItemCount()-1].GetDescriptionIndex() != description_index) {
         m_SamplesInChunk.Append(1);
+        if (new_chunk) {
+            m_ChunkOffsets.Append(offset);
+        }
     } else {
         ++m_SamplesInChunk[m_SamplesInChunk.ItemCount()-1];
     }
@@ -196,6 +205,35 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
 }
 
 /*----------------------------------------------------------------------
+ |   AP4_SyntheticSampleTable::GenerateStblAtom
+ +---------------------------------------------------------------------*/
+AP4_Result
+AP4_SyntheticSampleTable::GenerateStblAtom(AP4_ContainerAtom*& stbl)
+{
+    AP4_Result result = AP4_SampleTable::GenerateStblAtom(stbl);
+
+    if (result == AP4_SUCCESS && m_ChunkOffsets.ItemCount() > 0) {
+        AP4_StcoAtom *stcoAtom = AP4_DYNAMIC_CAST(AP4_StcoAtom, stbl->GetChild(AP4_ATOM_TYPE_STCO));
+        AP4_Co64Atom *co64Atom = AP4_DYNAMIC_CAST(AP4_Co64Atom, stbl->GetChild(AP4_ATOM_TYPE_CO64));
+
+        // correct the chunk offset table
+        if (co64Atom) {
+            for (AP4_Ordinal chunk = 0; chunk < m_ChunkOffsets.ItemCount(); chunk++) {
+                AP4_UI64 offset = m_ChunkOffsets[chunk];
+                co64Atom->SetChunkOffset(chunk, offset);
+            }
+        } else if (stcoAtom) {
+            for (AP4_Ordinal chunk = 0; chunk < m_ChunkOffsets.ItemCount(); chunk++) {
+                AP4_UI64 offset = m_ChunkOffsets[chunk];
+                stcoAtom->SetChunkOffset(chunk+1, offset);
+            }
+        }
+    }
+
+    return result;
+}
+
+/*----------------------------------------------------------------------
 |   AP4_SyntheticSampleTable::GetSampleIndexForTimeStamp
 +---------------------------------------------------------------------*/
 AP4_Result 
@@ -226,3 +264,16 @@ AP4_SyntheticSampleTable::GetNearestSyncSampleIndex(AP4_Ordinal sample_index, bo
         return m_Samples.ItemCount();
     }
 }
+
+/*----------------------------------------------------------------------
+ |   AP4_SyntheticSampleTable::SetUseSampleOffsetForChunkPositions
+ +---------------------------------------------------------------------*/
+
+AP4_Result
+AP4_SyntheticSampleTable::SetUseSampleOffsetForChunkPositions(bool use_offset)
+{
+    m_UseSampleOffsetForChunkPositions = use_offset;
+
+    return AP4_SUCCESS;
+}
+
