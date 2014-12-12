@@ -1,6 +1,6 @@
 /*****************************************************************
 |
-|    AP4 - AVC Parser
+|    AP4 - sbgp Atoms
 |
 |    Copyright 2002-2014 Axiomatic Systems, LLC
 |
@@ -24,29 +24,55 @@
 |    Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 |    02111-1307, USA.
 |
-****************************************************************/
+ ****************************************************************/
 
-#ifndef _AP4_AVC_PARSER_H_
-#define _AP4_AVC_PARSER_H_
+#ifndef _AP4_SBGP_ATOM_H_
+#define _AP4_SBGP_ATOM_H_
 
 /*----------------------------------------------------------------------
 |   includes
 +---------------------------------------------------------------------*/
-#include "Ap4Types.h"
-#include "Ap4Results.h"
-#include "Ap4DataBuffer.h"
-#include "Ap4NalParser.h"
+#include "Ap4Atom.h"
+#include "Ap4Array.h"
 
 /*----------------------------------------------------------------------
-|   AP4_AvcParser
+|   AP4_SbgpAtom
 +---------------------------------------------------------------------*/
-class AP4_AvcParser : public AP4_NalParser {
+class AP4_SbgpAtom : public AP4_Atom
+{
 public:
-    static const char* NaluTypeName(unsigned int nalu_type);
-    static const char* PrimaryPicTypeName(unsigned int primary_pic_type);
-    static const char* SliceTypeName(unsigned int slice_type);
+    AP4_IMPLEMENT_DYNAMIC_CAST(AP4_SbgpAtom)
+
+    // types
+    struct Entry {
+        AP4_UI32 sample_count;
+        AP4_UI32 group_description_index;
+    };
     
-    AP4_AvcParser();
+    // class methods
+    static AP4_SbgpAtom* Create(AP4_Size size, AP4_ByteStream& stream);
+
+    // methods
+    AP4_SbgpAtom();
+    virtual AP4_Result InspectFields(AP4_AtomInspector& inspector);
+    virtual AP4_Result WriteFields(AP4_ByteStream& stream);
+
+    // accessors
+    AP4_UI32 GetGroupingType()          { return m_GroupingType;          }
+    AP4_UI32 GetGroupingTypeParameter() { return m_GroupingTypeParameter; }
+    AP4_Array<Entry>& GetEntries()      { return m_Entries;               }
+    
+private:
+    // methods
+    AP4_SbgpAtom(AP4_UI32        size,
+                 AP4_UI08        version,
+                 AP4_UI32        flags,
+                 AP4_ByteStream& stream);
+
+    // members
+    AP4_UI32 m_GroupingType;
+    AP4_UI32 m_GroupingTypeParameter;
+    AP4_Array<Entry> m_Entries;
 };
 
-#endif // _AP4_AVC_PARSER_H_
+#endif // _AP4_SBGP_ATOM_H_

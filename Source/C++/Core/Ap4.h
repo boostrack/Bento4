@@ -306,8 +306,13 @@
 #include "Ap4AinfAtom.h"
 #include "Ap4PsshAtom.h"
 #include "Ap4TfraAtom.h"
+#include "Ap4SbgpAtom.h"
 #include "Ap4MfroAtom.h"
 #include "Ap4Dec3Atom.h"
+#include "Ap4SidxAtom.h"
+#include "Ap4AdtsParser.h"
+#include "Ap4AvcParser.h"
+#include "Ap4SegmentBuilder.h"
 
 /*----------------------------------------------------------------------
 |   global functions

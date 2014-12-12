@@ -179,7 +179,9 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
         } else {
             if (prev_sample->GetDuration() == 0) {
                 // update the previous sample
-                if (dts <= prev_sample->GetDts()) return AP4_ERROR_INVALID_PARAMETERS;
+                if (dts <= prev_sample->GetDts()) {
+                    return AP4_ERROR_INVALID_PARAMETERS;
+                }
                 prev_sample->SetDuration((AP4_UI32)(dts-prev_sample->GetDts()));
             } else {
                 if (dts != prev_sample->GetDts()+prev_sample->GetDuration()) {
@@ -192,6 +194,15 @@ AP4_SyntheticSampleTable::AddSample(AP4_ByteStream& data_stream,
     
     // add the sample to the table
     AP4_Sample sample(data_stream, offset, size, duration, description_index, dts, cts_delta, sync);
+    return m_Samples.Append(sample);
+}
+
+/*----------------------------------------------------------------------
+|   AP4_SyntheticSampleTable::AddSample
++---------------------------------------------------------------------*/
+AP4_Result
+AP4_SyntheticSampleTable::AddSample(const AP4_Sample& sample)
+{
     return m_Samples.Append(sample);
 }
 

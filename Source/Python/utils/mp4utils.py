@@ -13,7 +13,8 @@ import io
 import struct
 import operator
 import hashlib
- 
+import xml.sax.saxutils as saxutils
+
 LanguageCodeMap = {
     'aar': 'aa', 'abk': 'ab', 'afr': 'af', 'aka': 'ak', 'alb': 'sq', 'amh': 'am', 'ara': 'ar', 'arg': 'an',
     'arm': 'hy', 'asm': 'as', 'ava': 'av', 'ave': 'ae', 'aym': 'ay', 'aze': 'az', 'bak': 'ba', 'bam': 'bm',
@@ -184,12 +185,14 @@ class Mp4Track:
         
         # compute the average segment durations
         segment_count = len(self.segment_durations)
-        if segment_count > 1:
-            # do not count the last segment, which could be shorter
-            self.average_segment_duration = reduce(operator.add, self.segment_durations[:-1], 0)/float(segment_count-1)
-        elif segment_count == 1:
+        if segment_count > 2:
+            # do not count the last two segments, which could be shorter
+            self.average_segment_duration = reduce(operator.add, self.segment_durations[:-2], 0)/float(segment_count-2)
+        elif segment_count > 0:
             self.average_segment_duration = self.segment_durations[0]
-    
+        else:
+            self.average_segment_duration = 0
+            
         # compute the average segment bitrates
         self.media_size = reduce(operator.add, self.segment_sizes, 0)
         if self.total_duration:
@@ -371,7 +374,8 @@ class Mp4File:
         # print debug info if requested
         if options.debug:
             for track in self.tracks.itervalues():
-                print '    ID                       =', track.id
+                print 'Track ID                     =', track.id
+                print '    Segment Count            =', len(track.segment_durations)
                 print '    Type                     =', track.type
                 print '    Sample Count             =', track.total_sample_count
                 print '    Average segment bitrate  =', track.average_segment_bitrate
@@ -441,6 +445,15 @@ def MakeNewDir(dir, exit_if_exists=False, severity=None):
     else:
         os.mkdir(dir)        
 
+def GetEncryptionKey(options, spec):
+    if options.debug:
+        print 'Resolving KID and Key from spec:', spec
+    if spec.startswith('skm:'):
+        import skm
+        return skm.ResolveKey(options, spec[4:])
+    else:
+        raise Exception('Key Locator scheme not supported')
+
 def DerivePlayReadyKey(seed, kid, swap=True):
     if len(seed) < 30:
         raise Exception('seed must be  >= 30 bytes')
@@ -493,7 +506,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         header = header_b64.decode('base64')
         if len(header) == 0:
             raise Exception('invalid base64 encoding')
-        return header_b64
+        return header
     elif os.path.exists(header_spec):
         # read the header from the file
         header = open(header_spec, 'rb').read()
@@ -506,7 +519,7 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
             header_xml = header.decode('utf-8')
         if header_xml is not None:
             header = WrapPlayreadyHeaderXml(header_xml)
-        return header.encode('base64').replace('\n', '')
+        return header
     else:
         try:
             pairs = header_spec.split('#')
@@ -528,11 +541,11 @@ def ComputePlayReadyHeader(header_spec, kid_hex, key_hex):
         if 'CUSTOMATTRIBUTES' in fields:
             header_xml += '<CUSTOMATTRIBUTES>'+fields['CUSTOMATTRIBUTES'].decode('base64').replace('\n', '')+'</CUSTOMATTRIBUTES>'
         if 'LA_URL' in fields:
-            header_xml += '<LA_URL>'+fields['LA_URL']+'</LA_URL>'
+            header_xml += '<LA_URL>'+saxutils.escape(fields['LA_URL'])+'</LA_URL>'
         if 'LUI_URL' in fields:
-            header_xml += '<LUI_URL>'+fields['LUI_URL']+'</LUI_URL>'
+            header_xml += '<LUI_URL>'+saxutils.escape(fields['LUI_URL'])+'</LUI_URL>'
         if 'DS_ID' in fields:
-            header_xml += '<DS_ID>'+fields['DS_ID']+'</DS_ID>'
+            header_xml += '<DS_ID>'+saxutils.escape(fields['DS_ID'])+'</DS_ID>'
 
         header_xml += '</DATA></WRMHEADER>'
         return WrapPlayreadyHeaderXml(header_xml)

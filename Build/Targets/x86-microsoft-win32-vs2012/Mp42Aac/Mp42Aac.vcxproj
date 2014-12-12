@@ -51,7 +51,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Codecs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -63,8 +63,9 @@
       <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -85,7 +86,7 @@
     </Midl>
     <ClCompile>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\Source\C++\Core;..\..\..\..\Source\C++\MetaData;..\..\..\..\Source\C++\Codecs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -98,6 +99,7 @@
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

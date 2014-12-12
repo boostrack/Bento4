@@ -99,6 +99,9 @@
 #include "Ap4AinfAtom.h"
 #include "Ap4PsshAtom.h"
 #include "Ap4Dec3Atom.h"
+#include "Ap4SidxAtom.h"
+#include "Ap4SbgpAtom.h"
+#include "Ap4SgpdAtom.h"
 
 /*----------------------------------------------------------------------
 |   AP4_AtomFactory::~AP4_AtomFactory
@@ -283,13 +286,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_EncvSampleEntry(size_32, stream, *this);
             break;
 
-//          case AP4_ATOM_TYPE_DRMS:
-//            atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
-//            break;
-//
-//          case AP4_ATOM_TYPE_DRMI:
-//            atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
-//            break;
+          case AP4_ATOM_TYPE_DRMS:
+            atom = new AP4_DrmsSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_DRMI:
+            atom = new AP4_DrmiSampleEntry(size_32, stream, *this);
+            break;
 
           case AP4_ATOM_TYPE_AVC1:
           case AP4_ATOM_TYPE_AVC2:
@@ -298,28 +301,28 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
             atom = new AP4_AvcSampleEntry(type, size_32, stream, *this);
             break;
 
-//          case AP4_ATOM_TYPE_HEV1:
-//          case AP4_ATOM_TYPE_HVC1:
-//            atom = new AP4_HevcSampleEntry(type, size_32, stream, *this);
-//            break;
+          case AP4_ATOM_TYPE_HEV1:
+          case AP4_ATOM_TYPE_HVC1:
+            atom = new AP4_HevcSampleEntry(type, size_32, stream, *this);
+            break;
 
-//          case AP4_ATOM_TYPE_ALAC:
-//          case AP4_ATOM_TYPE_AC_3:
-//          case AP4_ATOM_TYPE_EC_3:
-//          case AP4_ATOM_TYPE_DTSC:
-//          case AP4_ATOM_TYPE_DTSH:
-//          case AP4_ATOM_TYPE_DTSL:
-//          case AP4_ATOM_TYPE_DTSE:
-//            atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
-//            break;
-//            
-//          case AP4_ATOM_TYPE_RTP_:
-//            atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
-//            break;
-//
-//          case AP4_ATOM_TYPE_STPP:
-//            atom = new AP4_SubtitleSampleEntry(type, size_32, stream, *this);
-//            break;
+          case AP4_ATOM_TYPE_ALAC:
+          case AP4_ATOM_TYPE_AC_3:
+          case AP4_ATOM_TYPE_EC_3:
+          case AP4_ATOM_TYPE_DTSC:
+          case AP4_ATOM_TYPE_DTSH:
+          case AP4_ATOM_TYPE_DTSL:
+          case AP4_ATOM_TYPE_DTSE:
+            atom = new AP4_AudioSampleEntry(type, size_32, stream, *this);
+            break;
+            
+          case AP4_ATOM_TYPE_RTP_:
+            atom = new AP4_RtpHintSampleEntry(size_32, stream, *this);
+            break;
+
+          case AP4_ATOM_TYPE_STPP:
+            atom = new AP4_SubtitleSampleEntry(type, size_32, stream, *this);
+            break;
 
           default: {
             // try all the external type handlers
@@ -479,13 +482,13 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
               AP4_Result result = stream.Read(uuid, 16);
               if (AP4_FAILED(result)) return result;
               
-//              if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 16) == 0) {
-//                  atom = AP4_PiffTrackEncryptionAtom::Create((AP4_UI32)size_64, stream);
-//              } else if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 16) == 0) {
-//                  atom = AP4_PiffSampleEncryptionAtom::Create((AP4_UI32)size_64, stream);
-//              } else {
+              if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_TRACK_ENCRYPTION_ATOM, 16) == 0) {
+                  atom = AP4_PiffTrackEncryptionAtom::Create((AP4_UI32)size_64, stream);
+              } else if (AP4_CompareMemory(uuid, AP4_UUID_PIFF_SAMPLE_ENCRYPTION_ATOM, 16) == 0) {
+                  atom = AP4_PiffSampleEncryptionAtom::Create((AP4_UI32)size_64, stream);
+              } else {
                   atom = new AP4_UnknownUuidAtom(size_64, uuid, stream);
-//              }
+              }
               break;
           }
             
@@ -650,6 +653,21 @@ AP4_AtomFactory::CreateAtomFromStream(AP4_ByteStream& stream,
           case AP4_ATOM_TYPE_PSSH:
             if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
             atom = AP4_PsshAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SIDX:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SidxAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SBGP:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SbgpAtom::Create(size_32, stream);
+            break;
+
+          case AP4_ATOM_TYPE_SGPD:
+            if (atom_is_large) return AP4_ERROR_INVALID_FORMAT;
+            atom = AP4_SgpdAtom::Create(size_32, stream);
             break;
 
           case AP4_ATOM_TYPE_MKID:

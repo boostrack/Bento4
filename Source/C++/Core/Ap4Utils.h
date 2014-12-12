@@ -38,6 +38,7 @@
 #include "Ap4Config.h"
 #include "Ap4List.h"
 #include "Ap4String.h"
+#include "Ap4DataBuffer.h"
 
 /*----------------------------------------------------------------------
 |   global options
@@ -125,10 +126,10 @@ AP4_BytesToInt16BE(const unsigned char* bytes)
 inline void
 AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
 {
-    bytes[0] = (unsigned char)(value >> 24);
-    bytes[1] = (unsigned char)(value >> 16);
-    bytes[2] = (unsigned char)(value >>  8);
-    bytes[3] = (unsigned char)(value      );
+    bytes[0] = (unsigned char)((value >> 24)&0xFF);
+    bytes[1] = (unsigned char)((value >> 16)&0xFF);
+    bytes[2] = (unsigned char)((value >>  8)&0xFF);
+    bytes[3] = (unsigned char)((value      )&0xFF);
 }
 
 /*----------------------------------------------------------------------
@@ -137,9 +138,9 @@ AP4_BytesFromUInt32BE(unsigned char* bytes, AP4_UI32 value)
 inline void
 AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
 {
-    bytes[0] = (unsigned char)(value >> 16);
-    bytes[1] = (unsigned char)(value >>  8);
-    bytes[2] = (unsigned char)(value      );
+    bytes[0] = (unsigned char)((value >> 16)&0xFF);
+    bytes[1] = (unsigned char)((value >>  8)&0xFF);
+    bytes[2] = (unsigned char)((value      )&0xFF);
 }
 
 /*----------------------------------------------------------------------
@@ -148,8 +149,8 @@ AP4_BytesFromUInt24BE(unsigned char* bytes, AP4_UI32 value)
 inline void
 AP4_BytesFromUInt16BE(unsigned char* bytes, AP4_UI16 value)
 {
-    bytes[0] = (unsigned char)(value >> 8);
-    bytes[1] = (unsigned char)(value     );
+    bytes[0] = (unsigned char)((value >> 8)&0xFF);
+    bytes[1] = (unsigned char)((value     )&0xFF);
 }
 
 /*----------------------------------------------------------------------
@@ -236,5 +237,38 @@ private:
     unsigned int   m_BitCount;
 };
 
+/*----------------------------------------------------------------------
+|   AP4_BitReader
++---------------------------------------------------------------------*/
+class AP4_BitReader
+{
+public:
+    // types
+    typedef unsigned int BitsWord;
 
+    // constructor and destructor
+    AP4_BitReader(const AP4_UI08* data, unsigned int data_size);
+    ~AP4_BitReader();
+
+    // methods
+    AP4_Result   Reset();
+    int          ReadBit();
+    AP4_UI32     ReadBits(unsigned int bit_count);
+    int          PeekBit();
+    AP4_UI32     PeekBits(unsigned int bit_count);
+    AP4_Result   SkipBytes(AP4_Size byte_count);
+    void         SkipBit();
+    void         SkipBits(unsigned int bit_count);
+
+private:
+    // methods
+    BitsWord ReadCache() const;
+
+    // members
+    AP4_DataBuffer m_Buffer;
+    unsigned int   m_Position;
+    BitsWord       m_Cache;
+    unsigned int   m_BitsCached;
+};
+    
 #endif // _AP4_UTILS_H_

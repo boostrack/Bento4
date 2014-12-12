@@ -11,9 +11,12 @@ SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 TempFiles = []
 
+RESOLUTION_ROUNDING_H = 16
+RESOLUTION_ROUNDING_V = 2
+
 def scale_resolution(pixels, aspect_ratio):
-    x = 16*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+15)/16)
-    y = 16*((int(math.ceil(x/aspect_ratio))+15)/16)
+    x = RESOLUTION_ROUNDING_H*((int(math.ceil(math.sqrt(pixels*aspect_ratio)))+RESOLUTION_ROUNDING_H-1)/RESOLUTION_ROUNDING_H)
+    y = RESOLUTION_ROUNDING_V*((int(math.ceil(x/aspect_ratio))+RESOLUTION_ROUNDING_V-1)/RESOLUTION_ROUNDING_V)
     return (x,y)
 
 def compute_bitrates_and_resolutions(options):
@@ -58,7 +61,7 @@ class MediaSource:
         else:
             quiet = ''
 
-        command = 'ffprobe -of json -show_format -show_streams '+quiet+filename
+        command = 'ffprobe -of json -show_format -show_streams '+quiet+'"'+filename+'"'
         json_probe = run_command(options, command)
         self.json_info = json.loads(json_probe, strict=False)
 
@@ -66,11 +69,18 @@ class MediaSource:
             if stream['codec_type'] == 'video':
                 self.width = stream['width']
                 self.height = stream['height']
-                if '/' in stream['avg_frame_rate']:
-                    (x,y) = stream['avg_frame_rate'].split('/')
-                    self.frame_rate = float(x)/float(y)
+                frame_rate = stream['avg_frame_rate']
+                if frame_rate == '0/0' or frame_rate == '0':
+                    frame_rate = stream['r_frame_rate']
+                if '/' in frame_rate:
+                    (x,y) = frame_rate.split('/')
+                    if x and y:
+                        self.frame_rate = float(x)/float(y)
+                    else:
+                        raise Exception('unable to obtain frame rate for source movie')
                 else:
-                    self.frame_rate = float(stream['avg_frame_rate'])
+                    self.frame_rate = float(frame_rate)
+                break
 
     def __repr__(self):
         return 'Video: resolution='+str(self.width)+'x'+str(self.height)
@@ -84,6 +94,8 @@ def main():
                       help="Be verbose")
     parser.add_option('-d', '--debug', dest="debug", action='store_true', default=False,
                       help="Print out debugging information")
+    parser.add_option('-k', '--keep-files', dest="keep_files", action='store_true', default=False,
+                      help="Keep intermediate files")
     parser.add_option('-o', '--output-dir', dest="output_dir",
                       help="Output directory", metavar="<output-dir>", default='output')
     parser.add_option('-b', '--bitrates', dest="bitrates",
@@ -93,11 +105,17 @@ def main():
     parser.add_option('-m', '--min-video-bitrate', dest='min_bitrate', type='float',
                       help="Minimum bitrate (default: 500kbps)", default=500.0)
     parser.add_option('-n', '--max-video-bitrate', dest='max_bitrate', type='float',
-                      help="Max Video bitrate (default: 2mbps)", default=2000.0)
+                      help="Max Video bitrate (default: 2mbps)", default=2000.0),
+    parser.add_option('-p', '--video-profile', dest='video_profile',
+                      help="Video Encoding Profile: main or baseline (default)")
     parser.add_option('-a', '--audio-bitrate', dest='audio_bitrate', type='int',
                       help="Audio bitrate (default: 128kbps)", default=128)
+    parser.add_option('', '--select-streams', dest='select_streams', 
+                      help="Only encode these streams (comma-separated list of stream indexes or stream sepcifiers)")
     parser.add_option('-s', '--segment-size', dest='segment_size', type='int',
                       help="Video segment size in frames (default: 3*fps)")
+    parser.add_option('-t', '--text-overlay', dest='text_overlay', action='store_true', default=False,
+                      help="Add a text overlay with the bitrate")
     parser.add_option('-f', '--force', dest="force_output", action="store_true",
                       help="Overwrite output files if they already exist", default=False)
     (options, args) = parser.parse_args()
@@ -113,6 +131,10 @@ def main():
 
     if options.min_bitrate > options.max_bitrate:
         raise Exception('ERROR: max bitrate must be >= min bitrate')
+
+    if options.video_profile:
+        if not options.video_profile in ['main', 'baseline']:
+            raise Exception('ERROR: unknown video encoding profile')
 
     if options.verbose:
         print 'Encoding', options.bitrates, 'bitrates, min bitrate =', options.min_bitrate, 'max bitrate =', options.max_bitrate
@@ -134,22 +156,35 @@ def main():
     for i in range(options.bitrates):
         output_filename = 'video_%05d.mp4' % int(bitrates[i])
         temp_filename = output_filename+'_'
-        base_cmd  = "ffmpeg -i %s -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264" % (args[0], options.audio_bitrate)
+        base_cmd  = 'ffmpeg -i "%s" -strict experimental -acodec libfdk_aac -ac 2 -ab %dk -profile:v baseline -preset slow -vcodec libx264' % (args[0], options.audio_bitrate)
+        if options.text_overlay:
+            base_cmd += ' -vf "drawtext=fontfile=/Library/Fonts/Courier New.ttf: text='+str(int(bitrates[i]))+'kbps '+str(resolutions[i][0])+'*'+str(resolutions[i][1])+': fontsize=50:  x=(w)/8: y=h-(2*lh): fontcolor=white:"'
+        if options.select_streams:
+            specifiers = options.select_streams.split(',')
+            for specifier in specifiers:
+                base_cmd += ' -map 0:'+specifier
+        else:
+            base_cmd += ' -map 0'
         if not options.debug:
             base_cmd += ' -v quiet'
         if options.force_output:
             base_cmd += ' -y'
-        x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
+        if options.video_profile:
+            base_cmd += ' -profile:v '+options.video_profile
+
+        #x264_opts = "-x264opts keyint=%d:min-keyint=%d:scenecut=0:rc-lookahead=%d" % (options.segment_size, options.segment_size, options.segment_size)
+        x264_opts = "-force_key_frames 'expr:eq(mod(n,%d),0)' -x264opts rc-lookahead=%d" % (options.segment_size, options.segment_size)
         x264_opts += ':vbv-bufsize=%d:vbv-maxrate=%d' % (bitrates[i], int(bitrates[i]*1.5))
         cmd = base_cmd+' '+x264_opts+' -s '+str(resolutions[i][0])+'x'+str(resolutions[i][1])+' -f mp4 '+temp_filename
         if options.verbose:
-            print 'ENCODING bitrate', int(bitrates[i])
+            print 'ENCODING bitrate: %d, resolution: %dx%d' % (int(bitrates[i]), resolutions[i][0], resolutions[i][1])
         run_command(options, cmd)
 
-        cmd = 'mp4fragment %s %s' % (temp_filename, output_filename)
+        cmd = 'mp4fragment "%s" "%s"' % (temp_filename, output_filename)
         run_command(options, cmd)
 
-        os.unlink(temp_filename)
+        if not options.keep_files:
+            os.unlink(temp_filename)
 
 ###########################
 if __name__ == '__main__':
