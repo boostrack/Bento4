@@ -273,7 +273,8 @@ AP4_GenericVideoSampleDescription::ToAtom() const
 /*----------------------------------------------------------------------
 |   AP4_AvcSampleDescription::AP4_AvcSampleDescription
 +---------------------------------------------------------------------*/
-AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
+AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI32     format,
+                                                   AP4_UI16     width,
                                                    AP4_UI16     height,
                                                    AP4_UI16     depth,
                                                    const char*  compressor_name,
@@ -283,7 +284,7 @@ AP4_AvcSampleDescription::AP4_AvcSampleDescription(AP4_UI16     width,
                                                    AP4_UI08     length_size,
                                                    const AP4_Array<AP4_DataBuffer>& sequence_parameters,
                                                    const AP4_Array<AP4_DataBuffer>& picture_parameters) :
-    AP4_SampleDescription(TYPE_AVC, AP4_SAMPLE_FORMAT_AVC1, NULL),
+    AP4_SampleDescription(TYPE_AVC, format, NULL),
     AP4_VideoSampleDescription(width, height, depth, compressor_name)
 {
     m_AvccAtom = new AP4_AvccAtom(profile, 
@@ -539,9 +540,9 @@ AP4_MpegSystemSampleDescription::ToAtom() const
 |   AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
-    unsigned int  sample_rate,
-    unsigned int  sample_size,
-    unsigned int  channel_count,
+    AP4_UI32  sample_rate,
+    AP4_UI16  sample_size,
+    AP4_UI16  channel_count,
     AP4_EsdsAtom* esds) :
     AP4_MpegSampleDescription(AP4_ATOM_TYPE_MP4A, esds),
     AP4_AudioSampleDescription(sample_rate, sample_size, channel_count)
@@ -553,9 +554,9 @@ AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
 +---------------------------------------------------------------------*/
 AP4_MpegAudioSampleDescription::AP4_MpegAudioSampleDescription(
     OTI                   oti,
-    unsigned int          sample_rate,
-    unsigned int          sample_size,
-    unsigned int          channel_count,
+    AP4_UI32              sample_rate,
+    AP4_UI16              sample_size,
+    AP4_UI16              channel_count,
     const AP4_DataBuffer* decoder_info,
     AP4_UI32              buffer_size,
     AP4_UI32              max_bitrate,

@@ -863,8 +863,10 @@ static const aes_32t il_tab[4][256] =
 static const aes_32t ls_tab[256] = { sb_data(w0) };
 #endif
 #ifdef  LS4_SET
+/* GBG: unused? 
 static const aes_32t ls_tab[4][256] =
     { {  sb_data(w0) }, {  sb_data(w1) }, {  sb_data(w2) }, {  sb_data(w3) } };
+*/
 #endif
 
 #ifdef  IM1_SET
@@ -1987,7 +1989,7 @@ AP4_AesBlockCipher::Create(const AP4_UI08*      key,
             
         case AP4_BlockCipher::CTR: {
             aes_enc_key(key, AP4_AES_KEY_LENGTH, context);
-            AP4_BlockCipher::CtrParams* ctr_params = (AP4_BlockCipher::CtrParams*) mode_params;
+            const AP4_BlockCipher::CtrParams* ctr_params = (const AP4_BlockCipher::CtrParams*)mode_params;
             unsigned int counter_size = 16;
             if (ctr_params) {
                 counter_size = ctr_params->counter_size;

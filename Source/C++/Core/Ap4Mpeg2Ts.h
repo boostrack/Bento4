@@ -56,6 +56,7 @@ const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_1_PES = 0x06;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ISO_IEC_13818_7     = 0x0F;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_AVC                 = 0x1B;
 const AP4_UI08 AP4_MPEG2_STREAM_TYPE_HEVC                = 0x24;
+const AP4_UI08 AP4_MPEG2_STREAM_TYPE_ATSC_AC3            = 0x81;
 
 /*----------------------------------------------------------------------
 |   AP4_Mpeg2TsWriter
@@ -84,7 +85,7 @@ public:
                                AP4_ByteStream& output);
         
     private:
-        unsigned int m_PID;
+        AP4_UI16     m_PID;
         unsigned int m_ContinuityCounter;
     };
     
@@ -123,15 +124,15 @@ public:
     };
     
     // constructor
-    AP4_Mpeg2TsWriter(unsigned int pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
+    AP4_Mpeg2TsWriter(AP4_UI16 pmt_pid = AP4_MPEG2_TS_DEFAULT_PID_PMT);
     ~AP4_Mpeg2TsWriter();
     
     Stream* GetPAT() { return m_PAT; }
     Stream* GetPMT() { return m_PMT; }
     AP4_Result WritePAT(AP4_ByteStream& output);
     AP4_Result WritePMT(AP4_ByteStream& output);
-    AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI32 stream_type, AP4_UI32 stream_id, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
-    AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI32 stream_type, AP4_UI32 stream_id, SampleStream*& stream, unsigned int pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
+    AP4_Result SetAudioStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id, SampleStream*& stream, AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_AUDIO);
+    AP4_Result SetVideoStream(AP4_UI32 timescale, AP4_UI08 stream_type, AP4_UI16 stream_id, SampleStream*& stream, AP4_UI16 pid = AP4_MPEG2_TS_DEFAULT_PID_VIDEO);
     
 private:
     Stream*       m_PAT;

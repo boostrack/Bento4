@@ -49,7 +49,7 @@ AP4_StsdAtom::Create(AP4_Size         size,
                      AP4_ByteStream&  stream, 
                      AP4_AtomFactory& atom_factory)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 1) return NULL;
@@ -72,10 +72,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
         // create an entry for the description
         AP4_SampleDescription* sample_description = sample_table->GetSampleDescription(i);
         AP4_Atom* entry = sample_description->ToAtom();
-        m_Children.Add(entry);
-
-        // update the size
-        m_Size32 += (AP4_UI32)entry->GetSize();
+        AddChild(entry);
     }
 }
 
@@ -83,7 +80,7 @@ AP4_StsdAtom::AP4_StsdAtom(AP4_SampleTable* sample_table) :
 |   AP4_StsdAtom::AP4_StsdAtom
 +---------------------------------------------------------------------*/
 AP4_StsdAtom::AP4_StsdAtom(AP4_UI32         size,
-                           AP4_UI32         version,
+                           AP4_UI08         version,
                            AP4_UI32         flags,
                            AP4_ByteStream&  stream,
                            AP4_AtomFactory& atom_factory) :

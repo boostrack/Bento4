@@ -94,7 +94,7 @@ public:
     
     // virtual methods
     virtual void StartAtom(const char* /* name        */,
-                           AP4_UI32    /* version     */,
+                           AP4_UI08    /* version     */,
                            AP4_UI32    /* flags       */,
                            AP4_Size    /* header_size */,
                            AP4_UI64    /*size         */) {}
@@ -139,7 +139,7 @@ public:
 
     // methods
     void StartAtom(const char* name,
-                   AP4_UI32    version,
+                   AP4_UI08    version,
                    AP4_UI32    flags,
                    AP4_Size    header_size,
                    AP4_UI64    size);
@@ -169,7 +169,7 @@ public:
 
     // methods
     void StartAtom(const char* name,
-                   AP4_UI32    version,
+                   AP4_UI08    version,
                    AP4_UI32    flags,
                    AP4_Size    header_size,
                    AP4_UI64    size);
@@ -206,7 +206,7 @@ public:
     // class methods
     static Type TypeFromString(const char* four_cc);
     static AP4_Result ReadFullHeader(AP4_ByteStream& stream, 
-                                     AP4_UI32&       version, 
+                                     AP4_UI08&       version, 
                                      AP4_UI32&       flags);
 
     // constructors
@@ -225,7 +225,7 @@ public:
      */
     explicit AP4_Atom(Type     type, 
                       AP4_UI32 size,
-                      AP4_UI32 version, 
+                      AP4_UI08 version, 
                       AP4_UI32 flags);
 
     /**
@@ -234,7 +234,7 @@ public:
     explicit AP4_Atom(Type     type, 
                       AP4_UI64 size,
                       bool     force_64,
-                      AP4_UI32 version, 
+                      AP4_UI08 version, 
                       AP4_UI32 flags);
 
     // destructor
@@ -285,7 +285,7 @@ public:
     AP4_UI64        m_Size64; // this is 0 if m_Size is not 1 (encoded in 32-bits)
                               // and non-zero only if m_Size is 1 (encoded in 64-bits)
     bool            m_IsFull;
-    AP4_UI32        m_Version;
+    AP4_UI08        m_Version;
     AP4_UI32        m_Flags;
     AP4_AtomParent* m_Parent;
 };
@@ -502,6 +502,9 @@ const AP4_Atom::Type AP4_ATOM_TYPE_MKID = AP4_ATOM_TYPE('m','k','i','d');
 const AP4_Atom::Type AP4_ATOM_TYPE_PRFT = AP4_ATOM_TYPE('p','r','f','t');
 const AP4_Atom::Type AP4_ATOM_TYPE_STPP = AP4_ATOM_TYPE('s','t','p','p');
 const AP4_Atom::Type AP4_ATOM_TYPE_DEC3 = AP4_ATOM_TYPE('d','e','c','3');
+const AP4_Atom::Type AP4_ATOM_TYPE_SIDX = AP4_ATOM_TYPE('s','i','d','x');
+const AP4_Atom::Type AP4_ATOM_TYPE_SBGP = AP4_ATOM_TYPE('s','b','g','p');
+const AP4_Atom::Type AP4_ATOM_TYPE_SGPD = AP4_ATOM_TYPE('s','g','p','d');
 
 /*----------------------------------------------------------------------
 |   AP4_AtomListInspector

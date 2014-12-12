@@ -167,6 +167,7 @@ AP4_AdtsParser::Feed(const AP4_UI08* buffer,
     /* see how much data we can write */
     free_space = m_Bits.GetBytesFree();
     if (*buffer_size > free_space) *buffer_size = free_space;
+    if (*buffer_size == 0) return AP4_SUCCESS;
 
     /* write the data */
     return m_Bits.WriteBytes(buffer, *buffer_size); 
@@ -224,15 +225,10 @@ AP4_AdtsParser::FindFrame(AP4_AacFrame& frame)
     result = adts_header.Check();
     if (AP4_FAILED(result)) goto fail;
     
-    /* check that we have enough data to peek at the next header */
+    /* check if we have enough data to peek at the next header */
     available = AP4_ADTS_HEADER_SIZE + m_Bits.GetBytesAvailable();
-    if (m_Bits.m_Flags & AP4_BITSTREAM_FLAG_EOS) {
-        /* we're at the end of the stream, we only need the entire frame */
-        if (available < adts_header.m_FrameLength) {
-            return AP4_ERROR_NOT_ENOUGH_DATA;
-        } 
-    } else {
-        /* peek at the header of the next frame */
+    if (available >= adts_header.m_FrameLength+AP4_ADTS_HEADER_SIZE) {
+        // enough to peek at the header of the next frame
         unsigned char peek_raw_header[AP4_ADTS_HEADER_SIZE];
 
         if (available < adts_header.m_FrameLength+AP4_ADTS_HEADER_SIZE) {
@@ -252,6 +248,9 @@ AP4_AdtsParser::FindFrame(AP4_AacFrame& frame)
         if (!AP4_AdtsHeader::MatchFixed(peek_raw_header, raw_header)) {
             goto fail;
         }
+    } else if (available < adts_header.m_FrameLength || (m_Bits.m_Flags & AP4_BITSTREAM_FLAG_EOS) == 0) {
+        // not enough for a frame, or not at the end (in which case we'll want to peek at the next header)
+        return AP4_ERROR_NOT_ENOUGH_DATA;
     }
 
     /* fill in the frame info */

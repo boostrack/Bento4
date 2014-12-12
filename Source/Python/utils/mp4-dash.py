@@ -22,7 +22,7 @@ from mp4utils import *
 
 # setup main options
 VERSION = "1.4.0"
-SVN_REVISION = "$Revision: 550 $"
+SVN_REVISION = "$Revision: 570 $"
 SCRIPT_PATH = path.abspath(path.dirname(__file__))
 sys.path += [SCRIPT_PATH]
 
@@ -35,17 +35,17 @@ MPD_NS                    = 'urn:mpeg:dash:schema:mpd:2011'
 ISOFF_LIVE_PROFILE        = 'urn:mpeg:dash:profile:isoff-live:2011'
 FULL_PROFILE              = 'urn:mpeg:dash:profile:full:2011'
 SPLIT_INIT_SEGMENT_NAME   = 'init.mp4'
-NOSPLIT_INIT_FILE_PATTERN = 'init-%02d-%02d.mp4'
+NOSPLIT_INIT_FILE_PATTERN = 'init-%s.mp4'
 
-PADDED_SEGMENT_PATTERN     = 'seg-%04llu.m4f'
-PADDED_SEGMENT_URL_PATTERN = 'seg-%04d.m4f'
-PADDED_SEGMENT_TEMPLATE    = 'seg-$Number%04d$.m4f'
-NOPAD_SEGMENT_PATTERN      = 'seg-%llu.m4f'
-NOPAD_SEGMENT_URL_PATTERN  = 'seg-%d.m4f'
-NOPAD_SEGMENT_TEMPLATE     = 'seg-$Number$.m4f'
-SEGMENT_PATTERN            = NOPAD_SEGMENT_PATTERN
-SEGMENT_URL_PATTERN        = NOPAD_SEGMENT_URL_PATTERN
-SEGMENT_TEMPLATE           = NOPAD_SEGMENT_TEMPLATE
+PADDED_SEGMENT_PATTERN      = 'seg-%04llu.m4f'
+PADDED_SEGMENT_URL_PATTERN  = 'seg-%04d.m4f'
+PADDED_SEGMENT_URL_TEMPLATE = '$RepresentationID$/seg-$Number%04d$.m4f'
+NOPAD_SEGMENT_PATTERN       = 'seg-%llu.m4f'
+NOPAD_SEGMENT_URL_PATTERN   = 'seg-%d.m4f'
+NOPAD_SEGMENT_URL_TEMPLATE  = '$RepresentationID$/seg-$Number$.m4f'
+SEGMENT_PATTERN             = NOPAD_SEGMENT_PATTERN
+SEGMENT_URL_PATTERN         = NOPAD_SEGMENT_URL_PATTERN
+SEGMENT_URL_TEMPLATE        = NOPAD_SEGMENT_URL_TEMPLATE
 
 MEDIA_FILE_PATTERN        = 'media-%02d.mp4'
 MARLIN_SCHEME_ID_URI      = 'urn:uuid:5E629AF5-38DA-4063-8977-97FFBD9902D4'
@@ -104,16 +104,12 @@ def AddSegmentList(options, container, subdir, track, use_byte_range=False):
 
 
 #############################################
-def AddSegmentTemplate(options, container, subdir, track, stream_name):
-    if subdir:
-        prefix = subdir + '/'
-    else:
-        prefix = ''
-    init_segment_url = prefix + track.init_segment_name
+def AddSegmentTemplate(options, container, init_segment_url, media_url_template_prefix, track, stream_name):
+    if options.use_segment_list:
+        return
 
     if options.use_segment_timeline:
-        url_template = prefix + SEGMENT_TEMPLATE
-        init_segment_url = prefix + track.init_segment_name
+        url_template = SEGMENT_URL_TEMPLATE
         use_template_numbers = True
         if options.smooth:
             url_base = path.basename(options.smooth_server_manifest_filename)
@@ -151,16 +147,13 @@ def AddSegmentTemplate(options, container, subdir, track, stream_name):
                        duration=str(int(track.average_segment_duration*1000)),
                        startNumber='0',
                        initialization=init_segment_url,
-                       media=prefix + SEGMENT_TEMPLATE)
+                       media=SEGMENT_URL_TEMPLATE)
 
 
 #############################################
-def AddSegments(options, container, subdir, track, use_byte_range, stream_name):
+def AddSegments(options, container, subdir, track, use_byte_range):
     if options.use_segment_list:
-        AddSegmentList(options, container, subdir, track, use_byte_range)
-    else:
-        AddSegmentTemplate(options, container, subdir, track, stream_name)
-    
+        AddSegmentList(options, container, subdir, track, use_byte_range)    
 
 #############################################
 def AddContentProtection(options, container, tracks):
@@ -171,28 +164,29 @@ def AddContentProtection(options, container, tracks):
             PrintErrorAndExit('ERROR: no encryption info found in track '+str(track))
         if kid not in kids:
             kids.append(kid)
-    xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
-    xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
     xml.SubElement(container, 'ContentProtection', schemeIdUri='urn:mpeg:dash:mp4protection:2011', value='cenc')
     
     if options.marlin:
+        xml.register_namespace('mas', MARLIN_MAS_NAMESPACE)
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=MARLIN_SCHEME_ID_URI)
         cids = xml.SubElement(cp, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentIds')
         for kid in kids:
             cid = xml.SubElement(cids, '{' + MARLIN_MAS_NAMESPACE + '}MarlinContentId')
             cid.text = 'urn:marlin:kid:' + kid
-    if options.playready_header:
+    if options.playready:
+        xml.register_namespace('mspr', PLAYREADY_MSPR_NAMESPACE)
         if options.encryption_key:
             kid = options.kid_hex
             key = options.key_hex
         else:
             kid = kids[0]
             key = None
-        header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
-        header_b64 = header_bin.encode('base64').replace('\n', '')
         cp = xml.SubElement(container, 'ContentProtection', schemeIdUri=PLAYREADY_SCHEME_ID_URI)
-        pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
-        pro.text = header_b64
+        if options.playready_header:
+            header_bin = ComputePlayReadyHeader(options.playready_header, kid, key)
+            header_b64 = header_bin.encode('base64').replace('\n', '')
+            pro = xml.SubElement(cp, '{' + PLAYREADY_MSPR_NAMESPACE + '}pro')
+            pro.text = header_b64
                 
 
 #############################################
@@ -222,30 +216,30 @@ def OutputDash(options, audio_tracks, video_tracks):
     for (language, audio_track) in audio_tracks.iteritems():
         args = [period, 'AdaptationSet']
         kwargs = {'mimeType': AUDIO_MIMETYPE, 'startWithSAP': '1', 'segmentAlignment': 'true'}
-        if language:
-            id_ext = '.' + language
-            if language != 'und':
-                kwargs['lang'] = language
-        else:
-            id_ext = ''
+        if language != 'und':
+            kwargs['lang'] = language
+        stream_name = 'audio_' + language
         adaptation_set = xml.SubElement(*args, **kwargs)
-        if options.marlin or options.playready_header:
+        if options.marlin or options.playready:
             AddContentProtection(options, adaptation_set, [audio_track])
+    
+        if options.split:
+            media_subdir                      = 'audio/' + language
+            init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+            media_segment_url_template_prefix = '$RepresentationID$/'
+        else:
+            media_subdir                      = None
+            init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+            media_segment_url_template_prefix = ''
+
+        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, audio_track, stream_name)
+    
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
-                                        id='audio' + id_ext,
+                                        id=audio_track.representation_id,
                                         codecs=audio_track.codec,
                                         bandwidth=str(audio_track.bandwidth))
-        if language:
-            subdir = '/' + language
-            stream_name = 'audio_' + language
-        else:
-            subdir = ''
-            stream_name = 'audio'
-        if options.split:
-            AddSegments(options, representation, 'audio' + subdir, audio_track, False, stream_name)
-        else:
-            AddSegments(options, representation, None, audio_track, True, stream_name)
+        AddSegments(options, representation, media_subdir, audio_track, False)
         
     # process all the video tracks
     adaptation_set = xml.SubElement(period,
@@ -253,12 +247,23 @@ def OutputDash(options, audio_tracks, video_tracks):
                                     mimeType=VIDEO_MIMETYPE,
                                     segmentAlignment='true',
                                     startWithSAP='1')
-    if options.marlin or options.playready_header:
+    if options.marlin or options.playready:
         AddContentProtection(options, adaptation_set, video_tracks)
+    
+    if options.split:
+        init_segment_url                  = '$RepresentationID$/' + SPLIT_INIT_SEGMENT_NAME
+        media_segment_url_template_prefix = '$RepresentationID$/'
+    else:
+        init_segment_url                  = NOSPLIT_INIT_FILE_PATTERN % ('$RepresentationID$') 
+        media_segment_url_template_prefix = ''
+
+    if len(video_tracks):
+        AddSegmentTemplate(options, adaptation_set, init_segment_url, media_segment_url_template_prefix, video_tracks[0], 'video')
+    
     for video_track in video_tracks:
         representation = xml.SubElement(adaptation_set,
                                         'Representation',
-                                        id='video.' + str(video_track.parent.index),
+                                        id=video_track.representation_id,
                                         codecs=video_track.codec,
                                         width=str(video_track.width),
                                         height=str(video_track.height),
@@ -267,9 +272,11 @@ def OutputDash(options, audio_tracks, video_tracks):
             representation.set('maxPlayoutRate', video_track.max_playout_rate)
 
         if options.split:
-            AddSegments(options, representation, 'video/' + str(video_track.parent.index), video_track, False, 'video')
+            media_subdir = 'video/' + str(video_track.parent.index)
         else:
-            AddSegments(options, representation, None, video_track, True, 'video')           
+            media_subdir = None
+
+        AddSegments(options, representation, media_subdir, video_track, False)
         
     # save the MPD
     if options.mpd_filename:
@@ -292,10 +299,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
     # process the audio tracks
     audio_index = 0
     for (language, audio_track) in audio_tracks.iteritems():
-        if language:
-            stream_name = "audio_"+language
-        else:
-            stream_name = "audio"
+        stream_name = "audio_"+language
         audio_url_pattern="QualityLevels({bitrate})/Fragments(%s={start time})" % (stream_name)
         stream_index = xml.SubElement(client_manifest, 
                                       'StreamIndex', 
@@ -305,7 +309,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                                       Name=stream_name, 
                                       QualityLevels="1",
                                       TimeScale=str(audio_track.timescale))
-        if language and language != 'und':
+        if language != 'und':
             stream_index.set('Language', language)
         xml.SubElement(stream_index,
                        'QualityLevel',
@@ -313,7 +317,7 @@ def OutputSmooth(options, audio_tracks, video_tracks):
                        SamplingRate=str(audio_track.sample_rate),
                        Channels=str(audio_track.channels),
                        BitsPerSample="16",
-                       PacketSize="4",
+                       PacketSize=str(2*audio_track.channels),
                        AudioTag="255",
                        FourCC="AACL",
                        Index="0",
@@ -510,16 +514,20 @@ def main():
                       help="Produce an output compatible with the Hippo Media Server")
     parser.add_option('', '--hippo-server-manifest-name', dest="hippo_server_manifest_filename",
                       help="Hippo Media Server Manifest file name", metavar="<filename>", default='stream.msm')
-    parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<KID>:<key>', default=None,
-                      help="Encrypt all audio and video tracks with AES key <key> (in hex) and KID <KID> (in hex). Alternatively, the <key> can be specified as the character '#' followed by a base64-encoded key seed.")
+    parser.add_option('', "--encryption-key", dest="encryption_key", metavar='<key-spec>', default=None,
+                      help="Encrypt all audio and video tracks with MPEG CENC (AES-128), where <key-spec> specifies the KID and Key to use, using one of the following ways: " +
+                           "(1) <KID>:<key> with <KID> as a 32-character hex string and <key> either a 32-character hex string or the character '#' followed by a base64-encoded key seed; or " +
+                           "(2) @<key-locator> where <key-locator> is an expression of one of the supported key locator schemes (see online docs for details)")
     parser.add_option('', "--encryption-args", dest="encryption_args", metavar='<cmdline-arguments>', default=None,
                       help="Pass additional command line arguments to mp4encrypt (separated by spaces)")
     parser.add_option('', "--use-compat-namespace", dest="use_compat_namespace", action="store_true", default=False,
                       help="Use the original DASH MPD namespace as it was specified in the first published specification")
     parser.add_option('', "--marlin", dest="marlin", action="store_true", default=False,
                       help="Add Marlin signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
+    parser.add_option('', "--playready", dest="playready", action="store_true", default=False,
+                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option)")
     parser.add_option('', "--playready-header", dest="playready_header", metavar='<playready-header>', default=None,
-                      help="Add PlayReady signaling to the MPD (requires an encrypted input, or the --encryption-key option). " +
+                      help="Add a PlayReady PRO element in the MPD. The use of this option implied the --playready option." +
                            "The <playready-header> argument can be either: " +
                            "(1) the name of a file containing a PlayReady XML Rights Management Header (<WRMHEADER>) or a PlayReady Header Object (PRO) in binary form,  or "
                            "(2) the character '#' followed by a PlayReady Header Object encoded in Base64, or " +
@@ -563,33 +571,44 @@ def main():
 
     # switch variables
     if options.segment_template_padding:
-        global SEGMENT_PATTERN, SEGMENT_URL_PATTERN, SEGMENT_TEMPLATE
-        SEGMENT_PATTERN     = PADDED_SEGMENT_PATTERN
-        SEGMENT_URL_PATTERN = PADDED_SEGMENT_URL_PATTERN
-        SEGMENT_TEMPLATE    = PADDED_SEGMENT_TEMPLATE
+        global SEGMENT_PATTERN, SEGMENT_URL_PATTERN, SEGMENT_URL_TEMPLATE
+        SEGMENT_PATTERN      = PADDED_SEGMENT_PATTERN
+        SEGMENT_URL_PATTERN  = PADDED_SEGMENT_URL_PATTERN
+        SEGMENT_URL_TEMPLATE = PADDED_SEGMENT_URL_TEMPLATE
 
     # post-process some of the options
-    if options.encryption_key:
-        if ':' not in options.encryption_key:
-            raise Exception('Invalid argument syntax for --encryption-key option')
-        kid_hex, key_hex = options.encryption_key.split(':')
-        if len(kid_hex) != 32:
-            raise Exception('Invalid argument format for --encryption-key option')
+    if options.playready_header or options.playready_add_pssh:
+        options.playready = True
 
-        if key_hex.startswith('#'):
-            if len(key_hex) != 41:
-                raise Exception('Invalid argument format for --encryption-key option')
-            key_seed_bin = key_hex[1:].decode('base64')
-            kid_bin = kid_hex.decode('hex')
-            key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
-            if options.verbose:
-                print 'Derived Key =', key_hex
+    if options.playready and options.playready_header:
+        options.playready_add_pssh = True
+
+    # compute the KID and encryption key if needed
+    if options.encryption_key:
+        if options.encryption_key.startswith('@'):
+            (kid_hex, key_hex) = GetEncryptionKey(options, options.encryption_key[1:])
         else:
-            if len(key_hex) != 32:
+            if ':' not in options.encryption_key:
+                raise Exception('Invalid argument syntax for --encryption-key option')
+            kid_hex, key_hex = options.encryption_key.split(':')
+            if len(kid_hex) != 32:
                 raise Exception('Invalid argument format for --encryption-key option')
+
+            if key_hex.startswith('#'):
+                if len(key_hex) != 41:
+                    raise Exception('Invalid argument format for --encryption-key option')
+                key_seed_bin = key_hex[1:].decode('base64')
+                kid_bin = kid_hex.decode('hex')
+                key_hex = DerivePlayReadyKey(key_seed_bin, kid_bin).encode('hex')
+                if options.verbose:
+                    print 'Derived Key =', key_hex
+            else:
+                if len(key_hex) != 32:
+                    raise Exception('Invalid argument format for --encryption-key option')
         options.key_hex = key_hex
         options.kid_hex = kid_hex
 
+    # process language map options
     if options.language_map:
         mappings = options.language_map.split(',')
         options.language_map = {}
@@ -636,12 +655,13 @@ def main():
             encrypted_file.close() # necessary on Windows
             file_name_map[encrypted_file.name] = encrypted_file.name + ' (Encrypted ' + media_file + ')'
             args = ['--method', 'MPEG-CENC']
-            if (options.smooth):
-                args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
                 
             if options.encryption_args:
                 args += options.encryption_args.split()
-                
+            else:
+                if options.smooth or options.playready:
+                    args += ['--global-option', 'mpeg-cenc.piff-compatible:true']
+
             args.append(media_file)
             args.append(encrypted_file.name)
             for track_id in track_ids:
@@ -776,18 +796,28 @@ def main():
     # check that the video segment durations are almost all equal
     if not options.use_segment_timeline:
         for video_track in video_tracks:
-            for segment_duration in video_track.segment_durations[:-1]:
+            for segment_duration in video_track.segment_durations[:-2]:
                 ratio = segment_duration/video_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: video segment durations for "' + str(video_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
                     break
         for audio_track in audio_tracks.values():
-            for segment_duration in audio_track.segment_durations[:-1]:
+            for segment_duration in audio_track.segment_durations[:-2]:
                 ratio = segment_duration/audio_track.average_segment_duration
                 if ratio > 1.1 or ratio < 0.9:
                     sys.stderr.write('WARNING: audio segment durations for "' + str(audio_track) + '" vary by more than 10% (consider using --use-segment-timeline)\n')
                     break
     
+    # round the audio segment durations to be equal to the video segment durations
+    if len(video_tracks):
+        for audio_track in audio_tracks.values():
+            ratio = audio_track.average_segment_duration/video_tracks[0].average_segment_duration
+            if abs(ratio-1.0) < 0.05:
+                # within 5%, make it equal
+                if options.verbose:
+                    print 'INFO: adjusting segment duration for audio track '+str(audio_track)+' to '+str(video_tracks[0].average_segment_duration)+' to match the video'
+                audio_track.average_segment_duration = video_tracks[0].average_segment_duration
+
     # compute the audio codecs
     for audio_track in audio_tracks.values(): 
         audio_desc = audio_track.info['sample_descriptions'][0]
@@ -795,7 +825,7 @@ def main():
         if audio_coding == 'mp4a':
             audio_codec = 'mp4a.%02x' % (audio_desc['object_type'])
             if audio_desc['object_type'] == 64:
-                audio_codec += '.%02x' % (audio_desc['mpeg_4_audio_object_type'])
+                audio_codec += '.'+str(audio_desc['mpeg_4_audio_object_type'])
         else:
             audio_codec = audio_coding
                 
@@ -820,18 +850,19 @@ def main():
     # compute the track stream id init segment name for each track
     for (language, audio_track) in audio_tracks.items():
         if options.split:
+            audio_track.representation_id = 'audio/'+language
             audio_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.parent.index, audio_track.id)
-        if language:
-            audio_track.stream_id = 'audio_'+language
-        else:
-            audio_track.stream_id = 'audio'
+            audio_track.representation_id = 'audio-'+language
+            audio_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (audio_track.representation_id)
+        audio_track.stream_id = 'audio_'+language
     for video_track in video_tracks:
         if options.split:
+            video_track.representation_id = 'video/'+str(video_track.parent.index)
             video_track.init_segment_name = SPLIT_INIT_SEGMENT_NAME
         else:
-            video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.parent.index, video_track.id)
+            video_track.representation_id = 'video-'+str(video_track.parent.index)
+            video_track.init_segment_name = NOSPLIT_INIT_FILE_PATTERN % (video_track.representation_id)
         video_track.stream_id = 'video'
 
     # compute some values if not set
@@ -841,9 +872,9 @@ def main():
     # print info about the tracks
     if options.verbose:
         for audio_track in audio_tracks.itervalues():
-            print '  Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
+            print 'Audio Track: ' + str(audio_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (audio_track.max_segment_bitrate, audio_track.average_segment_bitrate, audio_track.bandwidth)
         for video_track in video_tracks:
-            print '  Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
+            print 'Video Track: ' + str(video_track) + ' - max bitrate=%d, avg bitrate=%d, req bandwidth=%d' % (video_track.max_segment_bitrate, video_track.average_segment_bitrate, video_track.bandwidth)
 
     # deal with the max playout strategy if set
     if options.max_playout_rate_strategy:
@@ -873,10 +904,8 @@ def main():
         if options.split:
             MakeNewDir(path.join(options.output_dir, 'audio'))
             for (language, audio_track) in audio_tracks.iteritems():
-                out_dir = path.join(options.output_dir, 'audio')
-                if language:
-                    out_dir = path.join(out_dir, language)
-                    MakeNewDir(out_dir)
+                out_dir = path.join(options.output_dir, 'audio', language)
+                MakeNewDir(out_dir)
                 print 'Processing media file (audio)', file_name_map[audio_track.parent.filename]
                 Mp4Split(options,
                          audio_track.parent.filename,

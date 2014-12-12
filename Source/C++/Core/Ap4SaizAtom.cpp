@@ -44,7 +44,7 @@ AP4_DEFINE_DYNAMIC_CAST_ANCHOR(AP4_SaizAtom)
 AP4_SaizAtom*
 AP4_SaizAtom::Create(AP4_Size size, AP4_ByteStream& stream)
 {
-    AP4_UI32 version;
+    AP4_UI08 version;
     AP4_UI32 flags;
     if (AP4_FAILED(AP4_Atom::ReadFullHeader(stream, version, flags))) return NULL;
     if (version > 0) return NULL;
@@ -67,7 +67,7 @@ AP4_SaizAtom::AP4_SaizAtom() :
 |   AP4_SaizAtom::AP4_SaizAtom
 +---------------------------------------------------------------------*/
 AP4_SaizAtom::AP4_SaizAtom(AP4_UI32        size, 
-                           AP4_UI32        version,
+                           AP4_UI08        version,
                            AP4_UI32        flags,
                            AP4_ByteStream& stream) :
     AP4_Atom(AP4_ATOM_TYPE_SAIZ, size, version, flags),
@@ -86,7 +86,7 @@ AP4_SaizAtom::AP4_SaizAtom(AP4_UI32        size,
     if (m_DefaultSampleInfoSize == 0) { 
         // means that the sample info entries  have different sizes
         if (m_SampleCount > remains) m_SampleCount = remains; // sanity check
-        unsigned long sample_count = m_SampleCount;
+        AP4_Cardinal sample_count = m_SampleCount;
         m_Entries.SetItemCount(sample_count);
         unsigned char* buffer = new AP4_UI08[sample_count];
         AP4_Result result = stream.Read(buffer, sample_count);

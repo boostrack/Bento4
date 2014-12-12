@@ -163,9 +163,9 @@ public:
     AP4_IMPLEMENT_DYNAMIC_CAST(AP4_AudioSampleDescription)
 
     // constructor and destructor
-    AP4_AudioSampleDescription(unsigned int sample_rate,
-                               unsigned int sample_size,
-                               unsigned int channel_count) :
+    AP4_AudioSampleDescription(AP4_UI32 sample_rate,
+                               AP4_UI16 sample_size,
+                               AP4_UI16 channel_count) :
     m_SampleRate(sample_rate),
     m_SampleSize(sample_size),
     m_ChannelCount(channel_count) {}
@@ -227,9 +227,9 @@ public:
 
     // constructors
     AP4_GenericAudioSampleDescription(AP4_UI32        format,
-                                      unsigned int    sample_rate,
-                                      unsigned int    sample_size,
-                                      unsigned int    channel_count,
+                                      AP4_UI32        sample_rate,
+                                      AP4_UI16        sample_size,
+                                      AP4_UI16        channel_count,
                                       AP4_AtomParent* details) :
         AP4_SampleDescription(TYPE_UNKNOWN, format, details),
         AP4_AudioSampleDescription(sample_rate, sample_size, channel_count) {}
@@ -285,7 +285,8 @@ public:
                              const char*     compressor_name,
                              AP4_AtomParent* details);
 
-    AP4_AvcSampleDescription(AP4_UI16                         width,
+    AP4_AvcSampleDescription(AP4_UI32                         format,
+                             AP4_UI16                         width,
                              AP4_UI16                         height,
                              AP4_UI16                         depth,
                              const char*                      compressor_name,
@@ -461,15 +462,15 @@ public:
     static const char* GetMpeg4AudioObjectTypeString(Mpeg4AudioObjectType type);
     
     // constructor
-    AP4_MpegAudioSampleDescription(unsigned int  sample_rate,
-                                   unsigned int  sample_size,
-                                   unsigned int  channel_count,
+    AP4_MpegAudioSampleDescription(AP4_UI32      sample_rate,
+                                   AP4_UI16      sample_size,
+                                   AP4_UI16      channel_count,
                                    AP4_EsdsAtom* esds);
                                    
     AP4_MpegAudioSampleDescription(OTI                   oti,
-                                   unsigned int          sample_rate,
-                                   unsigned int          sample_size,
-                                   unsigned int          channel_count,
+                                   AP4_UI32              sample_rate,
+                                   AP4_UI16              sample_size,
+                                   AP4_UI16              channel_count,
                                    const AP4_DataBuffer* decoder_info,
                                    AP4_UI32              buffer_size,
                                    AP4_UI32              max_bitrate,

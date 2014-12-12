@@ -115,10 +115,15 @@ CORE_SOURCES = 								\
     Ap4BlocAtom.cpp                         \
     Ap4PsshAtom.cpp			                \
     Ap4Dec3Atom.cpp                         \
+    Ap4SidxAtom.cpp                         \
     Ap4HvccAtom.cpp                         \
-	Ap4HevcParser.cpp						\
-	Ap4NalParser.cpp						\
-    
+    Ap4SgpdAtom.cpp                         \
+    Ap4SbgpAtom.cpp                         \
+    Ap4NalParser.cpp                        \
+    Ap4AvcParser.cpp                        \
+    Ap4HevcParser.cpp                       \
+    Ap4SegmentBuilder.cpp                   \
+
 
 CORE_OBJECTS=$(CORE_SOURCES:.cpp=.o)
 
